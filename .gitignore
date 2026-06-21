@@ -36,4 +36,17 @@ build/
 .vscode/
 
 ### Mac OS ###
-.DS_Store
+.DS_Store.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+
+# Build output
+target/
+
+# IntelliJ IDE files
+.idea/
+
+# Local helper scripts
+project_snapshot.sh
+clean_eventguard_structure.sh
