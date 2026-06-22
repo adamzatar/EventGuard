@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class NioPaymentFileReaderTest {
 
     @TempDir
-    Path tempDir;
+    private Path tempDir;
 
     @Test
     void givenValidFilePathWhenReadLinesThenReturnsFileLines() throws IOException {
