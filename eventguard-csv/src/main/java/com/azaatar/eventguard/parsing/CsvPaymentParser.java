@@ -74,8 +74,18 @@ public class CsvPaymentParser implements PaymentParser {
         String currency = columns[5].trim();
         String statusText = columns[6].trim();
         PaymentStatus status = PaymentStatus.valueOf(statusText);
-
         BigDecimal amount;
+
+        if (paymentId.isBlank()
+                || accountId.isBlank()
+                || name.isBlank()
+                || email.isBlank()
+                || amountText.isBlank()
+                || currency.isBlank()
+                || statusText.isBlank()) {
+            throw new IllegalArgumentException("Required payment field must not be blank");
+        }
+
         try {
             amount = new BigDecimal(amountText);
         } catch (NumberFormatException e) {
@@ -85,5 +95,9 @@ public class CsvPaymentParser implements PaymentParser {
 
         return new PaymentRecord(paymentId, accountId, name, email, amount, currency, status);
 
+    }
+
+    public static int getExpectedColumnCount() {
+        return EXPECTED_COLUMN_COUNT;
     }
 }
