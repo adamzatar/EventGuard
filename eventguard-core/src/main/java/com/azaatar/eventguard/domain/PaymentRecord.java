@@ -91,7 +91,18 @@ public class PaymentRecord {
         PaymentRecord that = (PaymentRecord) o;
         return Objects.equals(paymentId, that.paymentId) && Objects.equals(accountId, that.accountId) && Objects.equals(name, that.name) && Objects.equals(email, that.email) && Objects.equals(amount, that.amount) && Objects.equals(currency, that.currency) && status == that.status;
     }
-
+    @Override
+    public String toString() {
+        return "PaymentRecord{" +
+                "paymentId='" + paymentId + '\'' +
+                ", accountId='" + accountId + '\'' +
+                ", customerName='" + name + '\'' +
+                ", customerEmail='" + email + '\'' +
+                ", amount=" + amount +
+                ", currency='" + currency + '\'' +
+                ", status=" + status +
+                '}';
+    }
     @Override
     public int hashCode() {
         return Objects.hash(paymentId, accountId, name, email, amount, currency, status);
