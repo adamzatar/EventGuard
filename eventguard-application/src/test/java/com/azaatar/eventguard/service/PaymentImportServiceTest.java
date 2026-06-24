@@ -20,21 +20,9 @@ class PaymentImportServiceTest {
     void givenReaderReturnsLinesAndParserReturnsRecordsWhenImportPaymentsThenReturnsParsedRecords() throws IOException {
 
         // Arrange
-        List<String> rawLines = List.of(
-                "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING"
-        );
+        List<String> rawLines = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING");
 
-        List<PaymentRecord> expectedRecords = List.of(
-                new PaymentRecord(
-                        "PAY-001",
-                        "ACC-123",
-                        "Adam Zaatar",
-                        "adam@example.com",
-                        new BigDecimal("100.00"),
-                        "JOD",
-                        PaymentStatus.PENDING
-                )
-        );
+        List<PaymentRecord> expectedRecords = List.of(new PaymentRecord("PAY-001", "ACC-123", "Adam Zaatar", "adam@example.com", new BigDecimal("100.00"), "JOD", PaymentStatus.PENDING));
 
         PaymentFileReader reader = new FakePaymentFileReader(rawLines);
         FakePaymentParser parser = new FakePaymentParser(expectedRecords);
@@ -45,11 +33,7 @@ class PaymentImportServiceTest {
 
         // Assert
         assertEquals(rawLines, parser.getReceivedLines(), "Raw lines aren't equal to lines received by parser!");
-        assertEquals(
-                expectedRecords,
-                actualRecords,
-                "Actual records aren't equal to expected records!"
-        );
+        assertEquals(expectedRecords, actualRecords, "Actual records aren't equal to expected records!");
 
     }
 
@@ -65,21 +49,6 @@ class PaymentImportServiceTest {
         assertThrows(IOException.class, () -> service.importPayments(Path.of("payments.csv")));
     }
 
-    @Test
-    void givenNullPathWhenImportPaymentsThenRejectsPath() {
-
-        // Arrange
-        PaymentFileReader reader = new FakePaymentFileReader(List.of());
-        FakePaymentParser parser = new FakePaymentParser(List.of());
-        PaymentImportService service = new PaymentImportService(reader, parser);
-
-        // Act and Assert
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service.importPayments(null),
-                "Can't import payments from file with null path!"
-        );
-    }
 
     @Test
     void givenNullReaderWhenCreatingServiceThenRejectsDependency() {
@@ -89,11 +58,7 @@ class PaymentImportServiceTest {
         FakePaymentParser parser = new FakePaymentParser(List.of());
 
         // Act and Assert
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new PaymentImportService(reader, parser),
-                "Cannot create a service with a null reader!"
-        );
+        assertThrows(IllegalArgumentException.class, () -> new PaymentImportService(reader, parser), "Cannot create a service with a null reader!");
     }
 
     @Test
@@ -104,22 +69,15 @@ class PaymentImportServiceTest {
         FakePaymentParser parser = null;
 
         // Act and Assert
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new PaymentImportService(reader, parser),
-                "Cannot create a service with a null parser!"
-        );
+        assertThrows(IllegalArgumentException.class, () -> new PaymentImportService(reader, parser), "Cannot create a service with a null parser!");
     }
 
 
-
-
-
-    // Fake Implementations Needed for Testing
+    // Test Doubles
     private static class FakePaymentFileReader implements PaymentFileReader {
         private final List<String> linesToReturn;
 
-        private FakePaymentFileReader(List<String> linesToReturn){
+        private FakePaymentFileReader(List<String> linesToReturn) {
             this.linesToReturn = linesToReturn;
         }
 
@@ -140,7 +98,7 @@ class PaymentImportServiceTest {
         private final List<PaymentRecord> recordsToReturn;
         private List<String> receivedLines;
 
-        private FakePaymentParser(List<PaymentRecord> recordsToReturn){
+        private FakePaymentParser(List<PaymentRecord> recordsToReturn) {
             this.recordsToReturn = recordsToReturn;
         }
 
@@ -149,6 +107,7 @@ class PaymentImportServiceTest {
             this.receivedLines = lines;
             return recordsToReturn;
         }
+
         public List<String> getReceivedLines() {
             return receivedLines;
         }

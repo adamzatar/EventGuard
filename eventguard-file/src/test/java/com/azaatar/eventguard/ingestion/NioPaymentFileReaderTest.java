@@ -46,4 +46,17 @@ public class NioPaymentFileReaderTest {
         // Act and Assert
         assertThrows(IOException.class, () -> reader.readLines(missingFile));
     }
+
+//    @Test
+//    void givenNullPathWhenImportPaymentsThenRejectsPath() {
+//
+//        // Arrange
+//        PaymentFileReader reader = new FakePaymentFileReader(List.of());
+//        FakePaymentParser parser = new FakePaymentParser(List.of());
+//        PaymentImportService service = new PaymentImportService(reader, parser);
+//
+//        // Act and Assert
+//        assertThrows(IllegalArgumentException.class, () -> service.importPayments(null), "Can't import payments from file with null path!");
+//    }
+
 }

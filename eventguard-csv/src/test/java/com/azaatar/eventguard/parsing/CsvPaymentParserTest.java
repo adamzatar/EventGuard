@@ -1,7 +1,5 @@
 package com.azaatar.eventguard.parsing;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,31 +8,21 @@ import com.azaatar.eventguard.domain.PaymentRecord;
 import com.azaatar.eventguard.domain.PaymentStatus;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CsvPaymentParserTest {
-/*
-parsesValidPaymentLinesIntoPaymentRecords
-rejectsNullLinesList
-rejectsNullLine
-rejectsBlankLine
-rejectsLineWithTooFewColumns
-rejectsLineWithTooManyColumns
-rejectsInvalidAmount
-rejectsMissingTrailingStatus
-rejectsBlankRequiredField
- */
 
-    // check how record writes equals and implements it, make it a class with setters, getters and equals
+
     @Test
-    void parsesValidPaymentLinesIntoPaymentRecords() {
+    void givenValidPaymentLineWhenParsingThenReturnsPaymentRecord() {
 
         // Arrange
         List<String> rawLine = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING");
         PaymentRecord expectedLine = new PaymentRecord("PAY-001", "ACC-123", "Adam Zaatar", "adam@example.com", new BigDecimal("100.00"), "JOD", PaymentStatus.PENDING);
 
         // Act
-        CsvPaymentParser parser = new CsvPaymentParser();
+        PaymentParser parser = new CsvPaymentParser();
         List<PaymentRecord> paymentLines = parser.parse(rawLine);
 
         // Assert
@@ -43,9 +31,9 @@ rejectsBlankRequiredField
     }
 
     @Test
-    void rejectNullLinesList() {
+    void givenListWithNullLineWhenParsingThenRejectsLine() {
         // Arrange and Act
-        CsvPaymentParser parser = new CsvPaymentParser();
+        PaymentParser parser = new CsvPaymentParser();
 
         // Assert
         assertThrows(IllegalArgumentException.class, () -> parser.parse(null), "Can't parse null list!");
@@ -53,14 +41,14 @@ rejectsBlankRequiredField
     }
 
     @Test
-    void rejectNullLine() {
+    void givenNullLinesListWhenParsingThenRejectsInput() {
         // Arrange
         List<String> nullLine = new ArrayList<>();
         nullLine.add(null);
         nullLine.add("Adam");
 
         // Act
-        CsvPaymentParser parser = new CsvPaymentParser();
+        PaymentParser parser = new CsvPaymentParser();
 
         // Assert
         assertThrows(IllegalArgumentException.class, () -> parser.parse(nullLine), "Can't parse list with null value");
@@ -74,46 +62,47 @@ rejectsBlankRequiredField
         blankLine.add("  ");
 
         // Act
-        CsvPaymentParser parser = new CsvPaymentParser();
+        PaymentParser parser = new CsvPaymentParser();
 
         // Assert
         assertThrows(IllegalArgumentException.class, () -> parser.parse(blankLine), "Can't parse list with blank line");
     }
 
     @Test
-    void givenRawCsvLineWithMissingFieldsWhenParsingThenRejectsLine() {
+    void givenLineWithTooFewColumnsWhenParsingThenRejectsLine() {
 
         // Arrange
         List<String> missingFields = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD");
-        int expectedColumns = CsvPaymentParser.getExpectedColumnCount();
-        int actualColumns = missingFields.getFirst().split(",", -1).length;
-        // Act
-        CsvPaymentParser parser = new CsvPaymentParser();
+        PaymentParser parser = new CsvPaymentParser();
 
-        // Assert
-        assertNotEquals(expectedColumns, actualColumns, "Expected columns isn't equal to actual columns");
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(missingFields), "Can't parse if payment line is missing columns");
-        assertThat(actualColumns).withFailMessage("This line has %d columns, which is not less than %d", actualColumns, expectedColumns).isLessThan(expectedColumns);
+        // Act and Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> parser.parse(missingFields),
+                "Cannot parse a line with missing fields!"
+        );
+
+
     }
 
     @Test
-    void givenRawCsvLineWithExtraFieldsWhenParsingThenRejectsLine() {
+    void givenLineWithTooManyColumnsWhenParsingThenRejectsLine() {
 
         // Arrange
         List<String> extraFields = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING,hi");
-        int expectedColumns = CsvPaymentParser.getExpectedColumnCount();
-        int actualColumns = extraFields.getFirst().split(",", -1).length;
-        // Act
-        CsvPaymentParser parser = new CsvPaymentParser();
+        PaymentParser parser = new CsvPaymentParser();
 
-        // Assert
-        assertNotEquals(expectedColumns, actualColumns, "Expected columns isn't equal to actual columns");
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(extraFields), "Can't parse if payment line has extra columns");
-        assertThat(actualColumns).withFailMessage("This line has %d columns, which is not more than %d", actualColumns, expectedColumns).isGreaterThan(expectedColumns);
+        // Act and Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> parser.parse(extraFields),
+                "Cannot parse a line with extra fields!"
+        );
+
     }
 
     @Test
-    void rejectsInvalidAmount() {
+    void givenInvalidAmountWhenParsingThenRejectsLine() {
 
         // Arrange
         List<String> invalidAmount = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,not-a-number,JOD,PENDING");
@@ -126,42 +115,42 @@ rejectsBlankRequiredField
     }
 
     @Test
-    void rejectsInvalidStatus() {
+    void givenInvalidStatusWhenParsingThenRejectsLine() {
 
         // Arrange
         List<String> invalidStatus = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,UNKNOWN");
 
         // Act
-        CsvPaymentParser parser = new CsvPaymentParser();
+        PaymentParser parser = new CsvPaymentParser();
 
         // Assert
         assertThrows(IllegalArgumentException.class, () -> parser.parse(invalidStatus));
     }
 
     @Test
-    void rejectsMissingTrailingStatus() {
+    void givenMissingTrailingStatusWhenParsingThenRejectsLine() {
 
         // Arrange
         List<String> missingTrailingStatus = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,");
+        PaymentParser parser = new CsvPaymentParser();
 
-        // Act
-        int actualColumns = missingTrailingStatus.getFirst().split(",", -1).length;
-        int expectedColumns = CsvPaymentParser.getExpectedColumnCount();
-        CsvPaymentParser parser = new CsvPaymentParser();
+        // Act and Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> parser.parse(missingTrailingStatus),
+                "Cannot parse a line with a missing trailing status field!"
+        );
 
-        // Assert
-        assertEquals(expectedColumns, actualColumns);
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(missingTrailingStatus), "Can't parse line with missing trailing status");
     }
 
     @Test
-    void rejectsBlankRequiredField() {
+    void givenBlankRequiredFieldWhenParsingThenRejectsLine() {
 
         // Arrange
         List<String> blankPaymentId = List.of("   ,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING");
 
         // Act
-        CsvPaymentParser parser = new CsvPaymentParser();
+        PaymentParser parser = new CsvPaymentParser();
 
         // Assert
         assertThrows(IllegalArgumentException.class, () -> parser.parse(blankPaymentId), "Can't parse line with blank required field");

@@ -8,13 +8,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * Coordinates payment file reading and parsing.
+ */
+
 public class PaymentImportService {
 
-    /*
-    PaymentImportService coordinates
-    reading payment file lines and parsing
-    them into PaymentRecord objects.
-     */
 
     private final PaymentFileReader reader;
     private final PaymentParser parser;
@@ -31,11 +30,7 @@ public class PaymentImportService {
     }
 
     public List<PaymentRecord> importPayments(Path path) throws IOException {
-        if (path == null){
-            throw new IllegalArgumentException("Path can't be null!");
-        }
         return parser.parse(reader.readLines(path));
-
     }
 
 
