@@ -7,6 +7,8 @@ import java.util.List;
 import com.azaatar.eventguard.domain.PaymentRecord;
 import com.azaatar.eventguard.domain.PaymentStatus;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -143,16 +145,17 @@ class CsvPaymentParserTest {
 
     }
 
-    @Test
-    void givenBlankRequiredFieldWhenParsingThenRejectsLine() {
-
-        // Arrange
-        List<String> blankPaymentId = List.of("   ,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING");
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "   ,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING",
+            "PAY-001,   ,Adam Zaatar,adam@example.com,100.00,JOD,PENDING",
+            "PAY-001,ACC-123,   ,adam@example.com,100.00,JOD,PENDING"
+    })    void givenBlankRequiredFieldWhenParsingThenRejectsLine(String invalidLine) {
 
         // Act
         PaymentParser parser = new CsvPaymentParser();
 
         // Assert
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(blankPaymentId), "Can't parse line with blank required field");
+        assertThrows(IllegalArgumentException.class, () -> parser.parse(List.of(invalidLine)), "Can't parse line with blank required field");
     }
 }
