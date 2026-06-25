@@ -1,3 +1,5 @@
 PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING
+PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING
+PAY-001,ACC-456,Lina Haddad,lina@example.com,250.50,JOD,COMPLETED
 PAY-002,ACC-456,Lina Haddad,lina@example.com,250.50,JOD,COMPLETED
 PAY-003,ACC-789,Omar Saleh,omar@example.com,75.25,USD,FAILED
