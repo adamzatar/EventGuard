@@ -1,5 +1,7 @@
 package com.azaatar.eventguard.domain;
 
+import java.util.Objects;
+
 public class RejectedPaymentRecord {
 
     private final PaymentRecord paymentRecord;
@@ -26,5 +28,17 @@ public class RejectedPaymentRecord {
                 ", name='" + paymentRecord.getName() + '\'' +
                 ", reason=" + reason +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        RejectedPaymentRecord that = (RejectedPaymentRecord) o;
+        return Objects.equals(paymentRecord, that.paymentRecord) && reason == that.reason;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(paymentRecord, reason);
     }
 }

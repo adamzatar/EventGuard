@@ -7,9 +7,9 @@ public class PaymentProcessingReport {
     private final List<PaymentRecord> acceptedRecords;
     private final List<RejectedPaymentRecord> rejectedPaymentRecords;
 
-    public PaymentProcessingReport(List<RejectedPaymentRecord> rejectedPaymentRecords, List<PaymentRecord> acceptedRecords) {
-        this.rejectedPaymentRecords = List.copyOf(rejectedPaymentRecords);
+    public PaymentProcessingReport(List<PaymentRecord> acceptedRecords, List<RejectedPaymentRecord> rejectedPaymentRecords) {
         this.acceptedRecords = List.copyOf(acceptedRecords);
+        this.rejectedPaymentRecords = List.copyOf(rejectedPaymentRecords);
     }
 
     public List<PaymentRecord> getAcceptedRecords() {
