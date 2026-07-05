@@ -30,7 +30,7 @@ public class FilePaymentReportWriter {
         ensureParentDirectoryExists(outputPath);
         StringBuilder builder = new StringBuilder();
 
-        appendSection(builder, "Accepted records: ", report.getAcceptedRecords());
+        appendSection(builder, "Accepted Payments: ", report.getAcceptedRecords());
         appendSection(builder, "Rejected Payments: Missing Currency", rejectedMissingCurrency(report));
         appendSection(builder, "Rejected Payments: Missing Amount", rejectedMissingAmount(report));
         appendSection(builder, "Other Rejected Payments", otherRejected(report));

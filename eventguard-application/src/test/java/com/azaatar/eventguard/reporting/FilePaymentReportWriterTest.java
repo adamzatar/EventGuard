@@ -133,7 +133,7 @@ public class FilePaymentReportWriterTest {
         assertThrows(IllegalArgumentException.class, () -> writer.write(report, null));
     }
 
-    // constructor in paymentprocessingreport uses List.of() which cant take null
+    // constructor in PaymentProcessingReport uses List.of() which cant take null
 //    @Test
 //    void givenReportWithNullAcceptedRecordWhenWritingThenRejectsInput() throws IOException {
 //        // Arrange

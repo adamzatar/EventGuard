@@ -36,6 +36,38 @@ public class CsvPaymentParser implements PaymentParser {
         return records;
     }
 
+    private PaymentRecord parseLine(String line) {
+
+        validateLine(line);
+
+        String[] columns = line.split(",", -1);
+        validateColumnCount(columns);
+
+        List<String> fields = new ArrayList<>();
+
+        for (int i = 0; i < EXPECTED_COLUMN_COUNT; i++) {
+            String field = columns[i].trim();
+            validateField(field, FIELD_NAMES.get(i));
+            fields.add(field);
+        }
+
+        String paymentId = fields.get(0);
+        String accountId = fields.get(1);
+        String name = fields.get(2);
+        String email = fields.get(3);
+        String amountText = fields.get(4);
+        String currency = fields.get(5);
+        String statusText = fields.get(6);
+
+
+        BigDecimal amount = parseAmount(amountText);
+        PaymentStatus status = parseStatus(statusText);
+
+
+        return new PaymentRecord(paymentId, accountId, name, email, amount, currency, status);
+
+    }
+
     private void validateField(String value, String fieldName) {
         if (value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be blank!");
@@ -71,38 +103,6 @@ public class CsvPaymentParser implements PaymentParser {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Amount must be a valid decimal for BigDecimal!");
         }
-    }
-
-    private PaymentRecord parseLine(String line) {
-
-        validateLine(line);
-
-        String[] columns = line.split(",", -1);
-        validateColumnCount(columns);
-
-        List<String> fields = new ArrayList<>();
-
-        for (int i = 0; i < EXPECTED_COLUMN_COUNT; i++) {
-            String field = columns[i].trim();
-            validateField(field, FIELD_NAMES.get(i));
-            fields.add(field);
-        }
-
-        String paymentId = fields.get(0);
-        String accountId = fields.get(1);
-        String name = fields.get(2);
-        String email = fields.get(3);
-        String amountText = fields.get(4);
-        String currency = fields.get(5);
-        String statusText = fields.get(6);
-
-
-        BigDecimal amount = parseAmount(amountText);
-        PaymentStatus status = parseStatus(statusText);
-
-
-        return new PaymentRecord(paymentId, accountId, name, email, amount, currency, status);
-
     }
 
 }

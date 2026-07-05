@@ -54,3 +54,4 @@ clean_eventguard_structure.sh
 architecture_snapshot.sh
 architecture_snapshot_output.txt
 refactor_to_multimodule.sh
+reports/
