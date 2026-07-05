@@ -32,13 +32,13 @@ public class Main {
             List<PaymentRecord> records = importService.importPayments(path);
             PaymentProcessingReport report = processingService.process(records);
             System.out.println(formatter.format(report));
-        }  catch (IOException e) {
-        System.err.println("Failed to read payment file: " + e.getMessage() );
-    } catch (IllegalArgumentException e) {
-        System.err.println("Invalid payment data: " + e.getMessage() );
-    } catch (Exception e) {
-        System.err.println("Unexpected error: " + e.getMessage());
-    }
+        } catch (IOException e) {
+            System.err.println("Failed to read payment file: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid payment data: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error: " + e.getMessage());
+        }
 
 
     }

@@ -1,6 +1,7 @@
 package com.azaatar.eventguard.domain;
 
-public enum RejectionReason {
+public enum RejectionStatus {
+    NONE,
     DUPLICATE_PAYMENT_ID,
     NON_POSITIVE_AMOUNT,
     UNSUPPORTED_CURRENCY,
