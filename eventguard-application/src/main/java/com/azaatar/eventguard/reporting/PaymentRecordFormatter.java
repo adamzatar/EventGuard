@@ -2,7 +2,6 @@ package com.azaatar.eventguard.reporting;
 
 import com.azaatar.eventguard.domain.PaymentProcessingReport;
 import com.azaatar.eventguard.domain.PaymentRecord;
-import com.azaatar.eventguard.domain.RejectedPaymentRecord;
 
 public class PaymentRecordFormatter {
 
@@ -16,17 +15,16 @@ public class PaymentRecordFormatter {
                 "Status: " + record.getStatus();
     }
 
-    public String format(RejectedPaymentRecord record) {
-        PaymentRecord paymentRecord = record.getPaymentRecord();
+    public String formatRejectedRecords(PaymentRecord record) {
 
         return "Rejected payment record:\n" +
-                "Payment ID: " + paymentRecord.getPaymentId() + "\n" +
-                "Account ID: " + paymentRecord.getAccountId() + "\n" +
-                "Customer: " + paymentRecord.getName() + "\n" +
-                "Email: " + paymentRecord.getEmail() + "\n" +
-                "Amount: " + paymentRecord.getAmount() + " " + paymentRecord.getCurrency() + "\n" +
-                "Status: " + paymentRecord.getStatus() + "\n" +
-                "Rejection reason: " + record.getReason();
+                "Payment ID: " + record.getPaymentId() + "\n" +
+                "Account ID: " + record.getAccountId() + "\n" +
+                "Customer: " + record.getName() + "\n" +
+                "Email: " + record.getEmail() + "\n" +
+                "Amount: " + record.getAmount() + " " + record.getCurrency() + "\n" +
+                "Status: " + record.getStatus() + "\n" +
+                "Rejection reason: " + record.getRejectionStatus();
     }
 
     public String format(PaymentProcessingReport report) {
@@ -46,7 +44,7 @@ public class PaymentRecordFormatter {
 
         builder.append("Rejected payments\n");
         builder.append("-----------------\n");
-        for (RejectedPaymentRecord rejectedRecord : report.getRejectedRecords()) {
+        for (PaymentRecord rejectedRecord : report.getRejectedRecords()) {
             builder.append(format(rejectedRecord)).append("\n\n");
         }
 

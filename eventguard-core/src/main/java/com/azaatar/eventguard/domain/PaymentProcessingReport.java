@@ -5,9 +5,9 @@ import java.util.List;
 public class PaymentProcessingReport {
 
     private final List<PaymentRecord> acceptedRecords;
-    private final List<RejectedPaymentRecord> rejectedPaymentRecords;
+    private final List<PaymentRecord> rejectedPaymentRecords;
 
-    public PaymentProcessingReport(List<PaymentRecord> acceptedRecords, List<RejectedPaymentRecord> rejectedPaymentRecords) {
+    public PaymentProcessingReport(List<PaymentRecord> acceptedRecords, List<PaymentRecord> rejectedPaymentRecords) {
         this.acceptedRecords = List.copyOf(acceptedRecords);
         this.rejectedPaymentRecords = List.copyOf(rejectedPaymentRecords);
     }
@@ -16,7 +16,7 @@ public class PaymentProcessingReport {
         return acceptedRecords;
     }
 
-    public List<RejectedPaymentRecord> getRejectedRecords() {
+    public List<PaymentRecord> getRejectedRecords() {
         return rejectedPaymentRecords;
     }
 

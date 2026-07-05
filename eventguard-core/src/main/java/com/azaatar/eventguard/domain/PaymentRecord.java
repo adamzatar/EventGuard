@@ -18,6 +18,7 @@ public class PaymentRecord {
     private BigDecimal amount;
     private String currency;
     private PaymentStatus status;
+    private RejectionStatus rejectionStatus;
 
     public PaymentRecord(String paymentId, String accountId, String name, String email, BigDecimal amount, String currency, PaymentStatus status) {
         this.paymentId = paymentId;
@@ -27,6 +28,7 @@ public class PaymentRecord {
         this.accountId = accountId;
         this.name = name;
         this.email = email;
+        this.rejectionStatus = RejectionStatus.NONE;
     }
 
     public String getPaymentId() {
@@ -57,6 +59,10 @@ public class PaymentRecord {
         return status;
     }
 
+    public RejectionStatus getRejectionStatus() {
+        return rejectionStatus;
+    }
+
     public void setPaymentId(String paymentId) {
         this.paymentId = paymentId;
     }
@@ -85,13 +91,19 @@ public class PaymentRecord {
         this.status = status;
     }
 
+    public void setRejectionStatus(RejectionStatus rejectionStatus) {
+        if (rejectionStatus == null) {
+            throw new IllegalArgumentException();
+        }
+        this.rejectionStatus = rejectionStatus;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         PaymentRecord that = (PaymentRecord) o;
-        return Objects.equals(paymentId, that.paymentId) && Objects.equals(accountId, that.accountId) && Objects.equals(name, that.name) && Objects.equals(email, that.email) && Objects.equals(amount, that.amount) && Objects.equals(currency, that.currency) && status == that.status;
+        return Objects.equals(paymentId, that.paymentId) && Objects.equals(accountId, that.accountId) && Objects.equals(name, that.name) && Objects.equals(email, that.email) && Objects.equals(amount, that.amount) && Objects.equals(currency, that.currency) && status == that.status && rejectionStatus == that.rejectionStatus;
     }
-
 
     @Override
     public String toString() {
@@ -103,10 +115,12 @@ public class PaymentRecord {
                 ", amount=" + amount +
                 ", currency='" + currency + '\'' +
                 ", status=" + status +
+                ", rejectionStatus=" + rejectionStatus +
                 '}';
     }
     @Override
     public int hashCode() {
-        return Objects.hash(paymentId, accountId, name, email, amount, currency, status);
+        return Objects.hash(paymentId, accountId, name, email, amount, currency, status, rejectionStatus);
     }
+
 }
