@@ -1,14 +1,13 @@
 package com.azaatar.eventguard.service;
 
-import com.azaatar.eventguard.domain.PaymentProcessingReport;
 import com.azaatar.eventguard.domain.PaymentRecord;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static com.azaatar.eventguard.domain.RejectionStatus.DUPLICATE_PAYMENT_ID;
+import static com.azaatar.eventguard.domain.RejectionStatus.NONE;
 
 public class PaymentProcessingService {
 
@@ -34,29 +33,30 @@ public class PaymentProcessingService {
     //
     // file at the bottom, add copyright that file is written by me (footer).
 
-    public PaymentProcessingReport process(List<PaymentRecord> records) {
+    public List<PaymentRecord> process(List<PaymentRecord> processedRecords) {
 
-        if (records == null) {
-            throw new IllegalArgumentException("Records must not be null");
-        }
-
-        if (records.isEmpty()) {
-            return new PaymentProcessingReport(List.of(), List.of());
-        }
-
-        List<PaymentRecord> accepted = new ArrayList<>();
-        List<PaymentRecord> rejected = new ArrayList<>();
-        Set<String> seenPaymentIds = new HashSet<>();
-
-        for (PaymentRecord record : records) {
-            if (!seenPaymentIds.add(record.getPaymentId())) {
-                record.setRejectionStatus(DUPLICATE_PAYMENT_ID);
-                rejected.add(record);
-            } else {
-                accepted.add(record);
+            if (processedRecords == null) {
+                throw new IllegalArgumentException("Records must not be null");
             }
+
+            if (processedRecords.isEmpty()) {
+                return List.of();
+            }
+
+            Set<String> seenPaymentIds = new HashSet<>();
+
+            for (PaymentRecord record : processedRecords) {
+
+                if (record.getRejectionStatus() != NONE) {
+                    continue;
+                }
+                if (!seenPaymentIds.add(record.getPaymentId())) {
+                    record.setRejectionStatus(DUPLICATE_PAYMENT_ID);
+            }
+
         }
-        return new PaymentProcessingReport(accepted, rejected);
+        return processedRecords;
+
     }
 
 

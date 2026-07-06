@@ -1,6 +1,5 @@
 package com.azaatar.eventguard.reporting;
 
-import com.azaatar.eventguard.domain.PaymentProcessingReport;
 import com.azaatar.eventguard.domain.PaymentRecord;
 import com.azaatar.eventguard.domain.PaymentStatus;
 import org.junit.jupiter.api.Test;
@@ -11,12 +10,12 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.ArrayList;
 
 import static com.azaatar.eventguard.domain.RejectionStatus.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FilePaymentReportWriterTest {
+public class FilePaymentReportPresenterTest {
 
     @TempDir
     Path tempDir;
@@ -24,14 +23,14 @@ public class FilePaymentReportWriterTest {
     @Test
     void givenValidReportWhenWritingThenCreatesReportFile() throws IOException {
         // Arrange
-        PaymentProcessingReport report = validReport();
+        List<PaymentRecord> records = processedRecords();
 
         Path outputPath = tempDir.resolve("reports").resolve("payment-processing-report.txt");
 
-        FilePaymentReportWriter writer = new FilePaymentReportWriter();
+        FilePaymentReportPresenter presenter = new FilePaymentReportPresenter(outputPath);
 
         // Act
-        writer.write(report, outputPath);
+        presenter.present(records);
 
         // Assert
         assertTrue(Files.exists(outputPath));
@@ -40,12 +39,12 @@ public class FilePaymentReportWriterTest {
     @Test
     void givenValidReportWhenWritingThenWritesExpectedSectionHeadings() throws IOException {
         // Arrange
-        PaymentProcessingReport report = validReport();
+        List<PaymentRecord> records = processedRecords();
         Path outputPath = tempDir.resolve("payment-processing-report.txt");
-        FilePaymentReportWriter writer = new FilePaymentReportWriter();
+        FilePaymentReportPresenter presenter = new FilePaymentReportPresenter(outputPath);
 
         // Act
-        writer.write(report, outputPath);
+        presenter.present(records);
 
         // Assert
         String content = Files.readString(outputPath);
@@ -60,12 +59,12 @@ public class FilePaymentReportWriterTest {
     @Test
     void givenAcceptedRecordWithAmountGreaterThanTenWhenWritingThenIncludesRecordInAmountThresholdSection() throws IOException {
         // Arrange
-        PaymentProcessingReport report = validReport();
+        List<PaymentRecord> records = processedRecords();
         Path outputPath = tempDir.resolve("payment-processing-report.txt");
-        FilePaymentReportWriter writer = new FilePaymentReportWriter();
+        FilePaymentReportPresenter presenter = new FilePaymentReportPresenter(outputPath);
 
         // Act
-        writer.write(report, outputPath);
+        presenter.present(records);
 
         // Assert
         String content = Files.readString(outputPath);
@@ -78,12 +77,12 @@ public class FilePaymentReportWriterTest {
     @Test
     void givenValidReportWhenWritingThenWritesFooter() throws IOException {
         // Arrange
-        PaymentProcessingReport report = validReport();
+        List<PaymentRecord> records = processedRecords();
         Path outputPath = tempDir.resolve("payment-processing-report.txt");
-        FilePaymentReportWriter writer = new FilePaymentReportWriter();
+        FilePaymentReportPresenter presenter = new FilePaymentReportPresenter(outputPath);
 
         // Act
-        writer.write(report, outputPath);
+        presenter.present(records);
 
         // Assert
         String content = Files.readString(outputPath);
@@ -94,12 +93,12 @@ public class FilePaymentReportWriterTest {
     @Test
     void givenValidReportWhenWritingThenWritesPaymentRecords() throws IOException {
         // Arrange
-        PaymentProcessingReport report = validReport();
+        List<PaymentRecord> records = processedRecords();
         Path outputPath = tempDir.resolve("payment-processing-report.txt");
-        FilePaymentReportWriter writer = new FilePaymentReportWriter();
+        FilePaymentReportPresenter presenter = new FilePaymentReportPresenter(outputPath);
 
         // Act
-        writer.write(report, outputPath);
+        presenter.present(records);
 
         // Assert
         String content = Files.readString(outputPath);
@@ -114,62 +113,24 @@ public class FilePaymentReportWriterTest {
     }
 
     @Test
-    void givenNullReportWhenWritingThenRejectsInput() throws IOException {
+    void givenNullPaymentRecordsListWhenWritingThenRejectsInput() throws IOException {
         // Arrange
         Path outputPath = tempDir.resolve("payment-processing-report.txt");
-        FilePaymentReportWriter writer = new FilePaymentReportWriter();
+        FilePaymentReportPresenter presenter = new FilePaymentReportPresenter(outputPath);
 
         // Act and Assert
-        assertThrows(IllegalArgumentException.class, () -> writer.write(null, outputPath));
+        assertThrows(IllegalArgumentException.class, () -> presenter.present(null));
     }
 
     @Test
-    void givenNullOutputPathWhenWritingThenRejectsInput() throws IOException {
-        // Arrange
-        PaymentProcessingReport report = validReport();
-        FilePaymentReportWriter writer = new FilePaymentReportWriter();
-
-        // Act and Assert
-        assertThrows(IllegalArgumentException.class, () -> writer.write(report, null));
+    void givenNullOutputPathWhenCreatingPresenterThenRejectsInput() throws IOException {
+        // Arrange, Act and Assert
+        assertThrows(IllegalArgumentException.class,
+                () -> new FilePaymentReportPresenter(null));
     }
 
-    // constructor in PaymentProcessingReport uses List.of() which cant take null
-//    @Test
-//    void givenReportWithNullAcceptedRecordWhenWritingThenRejectsInput() throws IOException {
-//        // Arrange
-//        List<PaymentRecord> acceptedRecords = new ArrayList<>();
-//        acceptedRecords.add(null);
-//        PaymentProcessingReport report = new PaymentProcessingReport(acceptedRecords, List.of());
-//        FilePaymentReportWriter writer = new FilePaymentReportWriter();
-//
-//        Path outputPath = tempDir.resolve("payment-processing-report.txt");
-//
-//        // Act
-//        writer.write(report, outputPath);
-//
-//        // Assert
-//        assertThrows(NullPointerException.class, () -> writer.write(report, outputPath));
-//    }
-//
-//    @Test
-//    void givenReportWithNullRejectedRecordWhenWritingThenRejectsInput() throws IOException {
-//        // Arrange
-//        List<PaymentRecord> rejectedRecords = new ArrayList<>();
-//        rejectedRecords.add(null);
-//        PaymentProcessingReport report = new PaymentProcessingReport(List.of(), rejectedRecords);
-//        FilePaymentReportWriter writer = new FilePaymentReportWriter();
-//
-//        Path outputPath = tempDir.resolve("payment-processing-report.txt");
-//
-//        // Act
-//        writer.write(report, outputPath);
-//
-//        // Assert
-//        assertThrows(NullPointerException.class, () -> writer.write(report, outputPath));
-//    }
 
-
-    private PaymentProcessingReport validReport() {
+    private List<PaymentRecord> processedRecords() {
         PaymentRecord accepted = new PaymentRecord("PAY-001", "ACC-123", "Adam Zaatar", "adam@example.com", new BigDecimal("100.00"), "JOD", PaymentStatus.PENDING);
         accepted.setRejectionStatus(NONE);
 
@@ -182,6 +143,6 @@ public class FilePaymentReportWriterTest {
         PaymentRecord duplicate = new PaymentRecord("PAY-001", "ACC-999", "Nour Khaled", "nour@example.com", new BigDecimal("25.00"), "JOD", PaymentStatus.PENDING);
         duplicate.setRejectionStatus(DUPLICATE_PAYMENT_ID);
 
-        return new PaymentProcessingReport(List.of(accepted), List.of(missingCurrency, missingAmount, duplicate));
+        return List.of(accepted, missingCurrency, missingAmount, duplicate);
     }
 }
