@@ -12,6 +12,9 @@ import java.util.List;
  * Coordinates payment file reading and parsing.
  */
 
+
+// add new field in the csv file to chose which output layer should be executed in order to present file
+    // processing result
 public class PaymentImportService {
 
 

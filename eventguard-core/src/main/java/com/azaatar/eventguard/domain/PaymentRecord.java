@@ -11,7 +11,6 @@ public class PaymentRecord {
 
     private String paymentId;
 
-
     private String accountId;
     private String name;
     private String email;
