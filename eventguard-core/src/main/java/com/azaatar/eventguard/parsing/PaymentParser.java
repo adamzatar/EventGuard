@@ -6,3 +6,8 @@ import java.util.List;
 public interface PaymentParser {
     List<PaymentRecord> parse(List<String> lines);
 }
+
+// String document is the parse parameter so that HTTP implementation works, split by comma
+// two sites read and study them: quartz and pojo
+// implement design in drawing
+// change CSVPaymentParserTest
