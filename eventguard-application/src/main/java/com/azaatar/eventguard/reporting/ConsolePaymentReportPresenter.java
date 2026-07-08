@@ -7,6 +7,8 @@ import java.util.List;
 
 public class ConsolePaymentReportPresenter implements PaymentReportPresenter {
 
+    // persist records
+    // validation
 
     public void present(List<PaymentRecord> processedRecords) {
 

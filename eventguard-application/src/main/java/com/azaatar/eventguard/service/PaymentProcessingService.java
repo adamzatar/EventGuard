@@ -11,7 +11,6 @@ import static com.azaatar.eventguard.domain.RejectionStatus.NONE;
 
 public class PaymentProcessingService {
 
-
     // no filteration where processing services are, in formatter
     // logic of filteration is on service layer, both processing service and processing report will expand way too much
 
@@ -35,29 +34,25 @@ public class PaymentProcessingService {
 
     public List<PaymentRecord> process(List<PaymentRecord> processedRecords) {
 
-            if (processedRecords == null) {
-                throw new IllegalArgumentException("Records must not be null");
+        if (processedRecords == null) {
+            throw new IllegalArgumentException("Records must not be null");
+        }
+
+        if (processedRecords.isEmpty()) {
+            return List.of();
+        }
+
+        Set<String> seenPaymentIds = new HashSet<>();
+
+        for (PaymentRecord record : processedRecords) {
+
+            if (record.getRejectionStatus() != NONE) {
+                continue;
             }
-
-            if (processedRecords.isEmpty()) {
-                return List.of();
+            if (!seenPaymentIds.add(record.getPaymentId())) {
+                record.setRejectionStatus(DUPLICATE_PAYMENT_ID);
             }
-
-            Set<String> seenPaymentIds = new HashSet<>();
-
-            for (PaymentRecord record : processedRecords) {
-
-                if (record.getRejectionStatus() != NONE) {
-                    continue;
-                }
-                if (!seenPaymentIds.add(record.getPaymentId())) {
-                    record.setRejectionStatus(DUPLICATE_PAYMENT_ID);
-            }
-
         }
         return processedRecords;
-
     }
-
-
 }

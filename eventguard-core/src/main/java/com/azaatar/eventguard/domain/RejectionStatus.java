@@ -3,7 +3,7 @@ package com.azaatar.eventguard.domain;
 public enum RejectionStatus {
     NONE,
     DUPLICATE_PAYMENT_ID,
-    NON_POSITIVE_AMOUNT,
+    NON_POSITIVE_AMOUNT, // Parser
     UNSUPPORTED_CURRENCY,
     INVALID_PAYMENT_STATUS,
     MISSING_PAYMENT_ID,
