@@ -5,10 +5,11 @@ import com.azaatar.eventguard.ingestion.NioPaymentFileReader;
 import com.azaatar.eventguard.ingestion.PaymentFileReader;
 import com.azaatar.eventguard.parsing.CsvPaymentParser;
 import com.azaatar.eventguard.parsing.PaymentParser;
+import com.azaatar.eventguard.pojo.PaymentParseResult;
 import com.azaatar.eventguard.reporting.ConsolePaymentReportPresenter;
+import com.azaatar.eventguard.reporting.FilePaymentReportPresenter;
 import com.azaatar.eventguard.service.PaymentImportService;
 import com.azaatar.eventguard.service.PaymentProcessingService;
-import com.azaatar.eventguard.reporting.FilePaymentReportPresenter;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -18,20 +19,32 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            // Setup (Prepare Objects)
+            // Setup
             PaymentFileReader reader = new NioPaymentFileReader();
             PaymentParser parser = new CsvPaymentParser();
             PaymentImportService importService = new PaymentImportService(reader, parser);
             PaymentProcessingService processingService = new PaymentProcessingService();
+
+            ConsolePaymentReportPresenter consolePresenter = new ConsolePaymentReportPresenter();
+            FilePaymentReportPresenter filePresenter = new FilePaymentReportPresenter();
+
             Path inputPath = Path.of("eventguard-runner/src/main/resources/payments.csv");
-            // Start Processing
-            List<PaymentRecord> records = importService.importPayments(inputPath);
-            List<PaymentRecord> processedRecords = processingService.process(records);
-            // Print Output
-            ConsolePaymentReportPresenter presenter = new ConsolePaymentReportPresenter();
-            presenter.present(processedRecords);
-            FilePaymentReportPresenter reportPresenter = new FilePaymentReportPresenter();
-            reportPresenter.present(processedRecords);
+
+            // Import / parse
+            PaymentParseResult parseResult = importService.importPayments(inputPath);
+
+            if (!parseResult.canProceedToProcessing()) {
+                System.err.println(parseResult.getDescription());
+                return;
+            }
+
+            // Process
+            List<PaymentRecord> processedRecords = processingService.process(parseResult.getRecords());
+
+            // Present
+            consolePresenter.present(processedRecords);
+            filePresenter.present(processedRecords);
+
         } catch (IOException e) {
             System.err.println("Failed to read or write payment file: " + e.getMessage());
         } catch (IllegalArgumentException e) {

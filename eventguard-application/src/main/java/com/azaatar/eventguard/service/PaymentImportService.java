@@ -1,12 +1,11 @@
 package com.azaatar.eventguard.service;
 
-import com.azaatar.eventguard.domain.PaymentRecord;
 import com.azaatar.eventguard.ingestion.PaymentFileReader;
 import com.azaatar.eventguard.parsing.PaymentParser;
+import com.azaatar.eventguard.pojo.PaymentParseResult;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Coordinates payment file reading and parsing.
@@ -32,8 +31,9 @@ public class PaymentImportService {
         this.parser = parser;
     }
 
-    public List<PaymentRecord> importPayments(Path path) throws IOException {
-        return parser.parse(reader.readLines(path));
+    public PaymentParseResult importPayments(Path path) throws IOException {
+        String document = reader.read(path);
+        return parser.parse(document);
     }
 
 

@@ -1,161 +1,213 @@
 package com.azaatar.eventguard.parsing;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.azaatar.eventguard.domain.PaymentRecord;
 import com.azaatar.eventguard.domain.PaymentStatus;
+import com.azaatar.eventguard.domain.RejectionStatus;
+import com.azaatar.eventguard.pojo.ParseStatus;
+import com.azaatar.eventguard.pojo.PaymentParseResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CsvPaymentParserTest {
 
+    private final PaymentParser parser = new CsvPaymentParser();
 
     @Test
-    void givenValidPaymentLineWhenParsingThenReturnsPaymentRecord() {
+    void givenValidPaymentDocumentWhenParsingThenReturnsSuccessWithPaymentRecord() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING";
 
-        // Arrange
-        List<String> rawLine = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING");
-        PaymentRecord expectedLine = new PaymentRecord("PAY-001", "ACC-123", "Adam Zaatar", "adam@example.com", new BigDecimal("100.00"), "JOD", PaymentStatus.PENDING);
-
-        // Act
-        PaymentParser parser = new CsvPaymentParser();
-        List<PaymentRecord> paymentLines = parser.parse(rawLine);
-
-        // Assert
-        assertEquals(1, paymentLines.size());
-        assertEquals(expectedLine, paymentLines.getFirst());
-    }
-
-    @Test
-    void givenListWithNullLineWhenParsingThenRejectsLine() {
-        // Arrange and Act
-        PaymentParser parser = new CsvPaymentParser();
-
-        // Assert
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(null), "Can't parse null list!");
-
-    }
-
-    @Test
-    void givenNullLinesListWhenParsingThenRejectsInput() {
-        // Arrange
-        List<String> nullLine = new ArrayList<>();
-        nullLine.add(null);
-        nullLine.add("Adam");
-
-        // Act
-        PaymentParser parser = new CsvPaymentParser();
-
-        // Assert
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(nullLine), "Can't parse list with null value");
-    }
-
-    @Test
-    void givenBlankLineWhenParsingThenRejectsLine() {
-
-        // Arrange
-        List<String> blankLine = new ArrayList<>();
-        blankLine.add("  ");
-
-        // Act
-        PaymentParser parser = new CsvPaymentParser();
-
-        // Assert
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(blankLine), "Can't parse list with blank line");
-    }
-
-    @Test
-    void givenLineWithTooFewColumnsWhenParsingThenRejectsLine() {
-
-        // Arrange
-        List<String> missingFields = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD");
-        PaymentParser parser = new CsvPaymentParser();
-
-        // Act and Assert
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> parser.parse(missingFields),
-                "Cannot parse a line with missing fields!"
+        PaymentRecord expectedRecord = new PaymentRecord(
+                "PAY-001",
+                "ACC-123",
+                "Adam Zaatar",
+                "adam@example.com",
+                new BigDecimal("100.00"),
+                "JOD",
+                PaymentStatus.PENDING
         );
 
+        PaymentParseResult result = parser.parse(document);
 
+        assertEquals(ParseStatus.SUCCESS, result.getParseStatus());
+        assertTrue(result.canProceedToProcessing());
+        assertEquals(1, result.getRecords().size());
+        assertEquals(expectedRecord, result.getRecords().get(0));
     }
 
     @Test
-    void givenLineWithTooManyColumnsWhenParsingThenRejectsLine() {
-
-        // Arrange
-        List<String> extraFields = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING,hi");
-        PaymentParser parser = new CsvPaymentParser();
-
-        // Act and Assert
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> parser.parse(extraFields),
-                "Cannot parse a line with extra fields!"
-        );
-
+    void givenNullDocumentWhenParsingThenThrowsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> parser.parse(null));
     }
 
     @Test
-    void givenInvalidAmountWhenParsingThenRejectsLine() {
+    void givenBlankDocumentWhenParsingThenReturnsFailure() {
+        PaymentParseResult result = parser.parse("   ");
 
-        // Arrange
-        List<String> invalidAmount = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,not-a-number,JOD,PENDING");
-
-        // Act
-        CsvPaymentParser parser = new CsvPaymentParser();
-
-        // Assert
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(invalidAmount));
+        assertEquals(ParseStatus.FAILURE, result.getParseStatus());
+        assertFalse(result.canProceedToProcessing());
+        assertTrue(result.getRecords().isEmpty());
     }
 
     @Test
-    void givenInvalidStatusWhenParsingThenRejectsLine() {
+    void givenLineWithTooFewColumnsWhenParsingThenReturnsFailure() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD";
 
-        // Arrange
-        List<String> invalidStatus = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,UNKNOWN");
+        PaymentParseResult result = parser.parse(document);
 
-        // Act
-        PaymentParser parser = new CsvPaymentParser();
-
-        // Assert
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(invalidStatus));
+        assertEquals(ParseStatus.FAILURE, result.getParseStatus());
+        assertFalse(result.canProceedToProcessing());
+        assertTrue(result.getRecords().isEmpty());
     }
 
     @Test
-    void givenMissingTrailingStatusWhenParsingThenRejectsLine() {
+    void givenLineWithTooManyColumnsWhenParsingThenReturnsFailure() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING,EXTRA";
 
-        // Arrange
-        List<String> missingTrailingStatus = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,");
-        PaymentParser parser = new CsvPaymentParser();
+        PaymentParseResult result = parser.parse(document);
 
-        // Act and Assert
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> parser.parse(missingTrailingStatus),
-                "Cannot parse a line with a missing trailing status field!"
-        );
+        assertEquals(ParseStatus.FAILURE, result.getParseStatus());
+        assertFalse(result.canProceedToProcessing());
+        assertTrue(result.getRecords().isEmpty());
+    }
 
+    @Test
+    void givenInvalidNonBlankAmountWhenParsingThenReturnsFailure() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,not-a-number,JOD,PENDING";
+
+        PaymentParseResult result = parser.parse(document);
+
+        assertEquals(ParseStatus.FAILURE, result.getParseStatus());
+        assertFalse(result.canProceedToProcessing());
+        assertTrue(result.getRecords().isEmpty());
+    }
+
+    @Test
+    void givenInvalidStatusWhenParsingThenReturnsFailure() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,UNKNOWN";
+
+        PaymentParseResult result = parser.parse(document);
+
+        assertEquals(ParseStatus.FAILURE, result.getParseStatus());
+        assertFalse(result.canProceedToProcessing());
+        assertTrue(result.getRecords().isEmpty());
+    }
+
+    @Test
+    void givenMissingTrailingStatusWhenParsingThenReturnsFailure() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,";
+
+        PaymentParseResult result = parser.parse(document);
+
+        assertEquals(ParseStatus.FAILURE, result.getParseStatus());
+        assertFalse(result.canProceedToProcessing());
+        assertTrue(result.getRecords().isEmpty());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
             "   ,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING",
             "PAY-001,   ,Adam Zaatar,adam@example.com,100.00,JOD,PENDING",
-            "PAY-001,ACC-123,   ,adam@example.com,100.00,JOD,PENDING"
-    })    void givenBlankRequiredFieldWhenParsingThenRejectsLine(String invalidLine) {
+            "PAY-001,ACC-123,   ,adam@example.com,100.00,JOD,PENDING",
+            "PAY-001,ACC-123,Adam Zaatar,   ,100.00,JOD,PENDING",
+            "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,   "
+    })
+    void givenBlankFatalRequiredFieldWhenParsingThenReturnsFailure(String document) {
+        PaymentParseResult result = parser.parse(document);
 
-        // Act
-        PaymentParser parser = new CsvPaymentParser();
+        assertEquals(ParseStatus.FAILURE, result.getParseStatus());
+        assertFalse(result.canProceedToProcessing());
+        assertTrue(result.getRecords().isEmpty());
+    }
 
-        // Assert
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(List.of(invalidLine)), "Can't parse line with blank required field");
+    @Test
+    void givenMissingAmountWhenParsingThenReturnsPartialSuccessWithMissingAmountRejection() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,,JOD,PENDING";
+
+        PaymentParseResult result = parser.parse(document);
+
+        assertEquals(ParseStatus.PARTIAL_SUCCESS, result.getParseStatus());
+        assertTrue(result.canProceedToProcessing());
+        assertEquals(1, result.getRecords().size());
+
+        PaymentRecord record = result.getRecords().get(0);
+        assertNull(record.getAmount());
+        assertEquals("JOD", record.getCurrency());
+        assertEquals(RejectionStatus.MISSING_AMOUNT, record.getRejectionStatus());
+    }
+
+    @Test
+    void givenMissingCurrencyWhenParsingThenReturnsPartialSuccessWithMissingCurrencyRejection() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,,PENDING";
+
+        PaymentParseResult result = parser.parse(document);
+
+        assertEquals(ParseStatus.PARTIAL_SUCCESS, result.getParseStatus());
+        assertTrue(result.canProceedToProcessing());
+        assertEquals(1, result.getRecords().size());
+
+        PaymentRecord record = result.getRecords().get(0);
+        assertEquals(new BigDecimal("100.00"), record.getAmount());
+        assertEquals("", record.getCurrency());
+        assertEquals(RejectionStatus.MISSING_CURRENCY, record.getRejectionStatus());
+    }
+
+    @Test
+    void givenMissingAmountAndCurrencyWhenParsingThenMissingAmountTakesPriority() {
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,,,PENDING";
+
+        PaymentParseResult result = parser.parse(document);
+
+        assertEquals(ParseStatus.PARTIAL_SUCCESS, result.getParseStatus());
+        assertTrue(result.canProceedToProcessing());
+        assertEquals(1, result.getRecords().size());
+
+        PaymentRecord record = result.getRecords().get(0);
+        assertNull(record.getAmount());
+        assertEquals("", record.getCurrency());
+        assertEquals(RejectionStatus.MISSING_AMOUNT, record.getRejectionStatus());
+    }
+
+    @Test
+    void givenDocumentWithValidAndParserRejectedRowsWhenParsingThenReturnsPartialSuccess() {
+        String document = String.join(System.lineSeparator(),
+                "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING",
+                "PAY-002,ACC-456,Lina Zaatar,lina@example.com,,JOD,PENDING",
+                "PAY-003,ACC-789,Omar Zaatar,omar@example.com,50.00,,PENDING"
+        );
+
+        PaymentParseResult result = parser.parse(document);
+
+        assertEquals(ParseStatus.PARTIAL_SUCCESS, result.getParseStatus());
+        assertTrue(result.canProceedToProcessing());
+        assertEquals(3, result.getRecords().size());
+
+        assertEquals(RejectionStatus.NONE, result.getRecords().get(0).getRejectionStatus());
+        assertEquals(RejectionStatus.MISSING_AMOUNT, result.getRecords().get(1).getRejectionStatus());
+        assertEquals(RejectionStatus.MISSING_CURRENCY, result.getRecords().get(2).getRejectionStatus());
+    }
+
+    @Test
+    void givenValidMultiLineDocumentWhenParsingThenReturnsSuccessWithAllRecords() {
+        String document = String.join(System.lineSeparator(),
+                "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING",
+                "PAY-002,ACC-456,Lina Zaatar,lina@example.com,200.00,USD,COMPLETED"
+        );
+
+        PaymentParseResult result = parser.parse(document);
+
+        assertEquals(ParseStatus.SUCCESS, result.getParseStatus());
+        assertTrue(result.canProceedToProcessing());
+        assertEquals(2, result.getRecords().size());
+        assertEquals(RejectionStatus.NONE, result.getRecords().get(0).getRejectionStatus());
+        assertEquals(RejectionStatus.NONE, result.getRecords().get(1).getRejectionStatus());
     }
 }
