@@ -1,10 +1,12 @@
 package com.azaatar.eventguard.parsing;
 import com.azaatar.eventguard.domain.PaymentRecord;
+import com.azaatar.eventguard.pojo.PaymentParseResult;
+
 import java.util.List;
 // List<String> -> List<PaymentRecord>
 
 public interface PaymentParser {
-    List<PaymentRecord> parse(List<String> lines);
+    PaymentParseResult parse(String document);
 }
 
 // String document is the parse parameter so that HTTP implementation works, split by comma

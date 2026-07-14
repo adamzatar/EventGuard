@@ -4,6 +4,8 @@ import com.azaatar.eventguard.domain.PaymentRecord;
 import com.azaatar.eventguard.domain.PaymentStatus;
 import com.azaatar.eventguard.ingestion.PaymentFileReader;
 import com.azaatar.eventguard.parsing.PaymentParser;
+import com.azaatar.eventguard.pojo.ParseStatus;
+import com.azaatar.eventguard.pojo.PaymentParseResult;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -17,32 +19,44 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class PaymentImportServiceTest {
 
     @Test
-    void givenReaderReturnsLinesAndParserReturnsRecordsWhenImportPaymentsThenReturnsParsedRecords() throws IOException {
+    void givenReaderReturnsDocumentAndParserReturnsParseResultWhenImportPaymentsThenReturnsParseResult() throws IOException {
 
         // Arrange
-        List<String> rawLines = List.of("PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING");
+        String document = "PAY-001,ACC-123,Adam Zaatar,adam@example.com,100.00,JOD,PENDING";
 
-        List<PaymentRecord> expectedRecords = List.of(new PaymentRecord("PAY-001", "ACC-123", "Adam Zaatar", "adam@example.com", new BigDecimal("100.00"), "JOD", PaymentStatus.PENDING));
+        PaymentRecord expectedRecord = new PaymentRecord(
+                "PAY-001",
+                "ACC-123",
+                "Adam Zaatar",
+                "adam@example.com",
+                new BigDecimal("100.00"),
+                "JOD",
+                PaymentStatus.PENDING
+        );
 
-        PaymentFileReader reader = new FakePaymentFileReader(rawLines);
-        FakePaymentParser parser = new FakePaymentParser(expectedRecords);
+        PaymentParseResult expectedResult = new PaymentParseResult(
+                ParseStatus.SUCCESS,
+                "Document parsed successfully.",
+                List.of(expectedRecord)
+        );
+
+        PaymentFileReader reader = new FakePaymentFileReader(document);
+        FakePaymentParser parser = new FakePaymentParser(expectedResult);
         PaymentImportService service = new PaymentImportService(reader, parser);
 
         // Act
-        List<PaymentRecord> actualRecords = service.importPayments(Path.of("payments.csv"));
+        PaymentParseResult actualResult = service.importPayments(Path.of("payments.csv"));
 
         // Assert
-        assertEquals(rawLines, parser.getReceivedLines(), "Raw lines aren't equal to lines received by parser!");
-        assertEquals(expectedRecords, actualRecords, "Actual records aren't equal to expected records!");
-
+        assertEquals(document, parser.getReceivedDocument(), "Parser did not receive the document from the reader!");
+        assertEquals(expectedResult, actualResult, "Actual parse result is not equal to expected parse result!");
     }
-
     @Test
     void givenReaderThrowsIOExceptionWhenImportPaymentsThenPropagatesIOException() {
 
         // Arrange
         PaymentFileReader reader = new ThrowingPaymentFileReader();
-        PaymentParser parser = new FakePaymentParser(List.of());
+        PaymentParser parser = new FakePaymentParser(null);
         PaymentImportService service = new PaymentImportService(reader, parser);
 
         // Act and Assert
@@ -55,7 +69,7 @@ class PaymentImportServiceTest {
 
         // Arrange
         PaymentFileReader reader = null;
-        FakePaymentParser parser = new FakePaymentParser(List.of());
+        FakePaymentParser parser = new FakePaymentParser(null);
 
         // Act and Assert
         assertThrows(IllegalArgumentException.class, () -> new PaymentImportService(reader, parser), "Cannot create a service with a null reader!");
@@ -65,7 +79,7 @@ class PaymentImportServiceTest {
     void givenNullParserWhenCreatingServiceThenRejectsDependency() {
 
         // Arrange
-        PaymentFileReader reader = new FakePaymentFileReader(List.of());
+        PaymentFileReader reader = new FakePaymentFileReader(null);
         FakePaymentParser parser = null;
 
         // Act and Assert
@@ -75,41 +89,44 @@ class PaymentImportServiceTest {
 
     // Test Doubles
     private static class FakePaymentFileReader implements PaymentFileReader {
-        private final List<String> linesToReturn;
 
-        private FakePaymentFileReader(List<String> linesToReturn) {
-            this.linesToReturn = linesToReturn;
+        private final String document;
+
+        private FakePaymentFileReader(String document) {
+            this.document = document;
         }
 
         @Override
-        public List<String> readLines(Path path) throws IOException {
-            return linesToReturn;
+        public String read(Path path) {
+            return document;
         }
     }
 
     private static class ThrowingPaymentFileReader implements PaymentFileReader {
+
         @Override
-        public List<String> readLines(Path path) throws IOException {
+        public String read(Path path) throws IOException {
             throw new IOException();
         }
     }
 
     private static class FakePaymentParser implements PaymentParser {
-        private final List<PaymentRecord> recordsToReturn;
-        private List<String> receivedLines;
 
-        private FakePaymentParser(List<PaymentRecord> recordsToReturn) {
-            this.recordsToReturn = recordsToReturn;
+        private final PaymentParseResult result;
+        private String receivedDocument;
+
+        private FakePaymentParser(PaymentParseResult result) {
+            this.result = result;
         }
 
         @Override
-        public List<PaymentRecord> parse(List<String> lines) {
-            this.receivedLines = lines;
-            return recordsToReturn;
+        public PaymentParseResult parse(String document) {
+            this.receivedDocument = document;
+            return result;
         }
 
-        public List<String> getReceivedLines() {
-            return receivedLines;
+        private String getReceivedDocument() {
+            return receivedDocument;
         }
     }
 }

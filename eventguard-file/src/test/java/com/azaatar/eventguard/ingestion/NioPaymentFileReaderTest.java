@@ -6,7 +6,6 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -17,34 +16,36 @@ public class NioPaymentFileReaderTest {
     private Path tempDir;
 
     @Test
-    void givenValidFilePathWhenReadLinesThenReturnsFileLines() throws IOException {
+    void givenValidFilePathWhenReadThenReturnsFileDocument() throws IOException {
 
         // Arrange
         Path file = tempDir.resolve("payments.csv");
-        List<String> expectedLines = List.of(
+        String expectedDocument = String.join(System.lineSeparator(),
                 "header",
                 "line one",
                 "line two"
         );
-        Files.write(file, expectedLines);
+
+        Files.writeString(file, expectedDocument);
+
         NioPaymentFileReader reader = new NioPaymentFileReader();
 
         // Act
-        List<String> actualLines = reader.readLines(file);
+        String actualDocument = reader.read(file);
 
         // Assert
-        assertEquals(expectedLines, actualLines, "Reader should return the exact file lines in order");
+        assertEquals(expectedDocument, actualDocument, "Reader should return the exact file document content");
     }
 
     @Test
-    void givenMissingFilePathWhenReadLinesThenThrowsIOException() {
+    void givenMissingFilePathWhenReadThenThrowsIOException() {
 
         // Arrange
         Path missingFile = tempDir.resolve("missing-payments.csv");
         NioPaymentFileReader reader = new NioPaymentFileReader();
 
         // Act and Assert
-        assertThrows(IOException.class, () -> reader.readLines(missingFile));
+        assertThrows(IOException.class, () -> reader.read(missingFile));
     }
 
 //    @Test

@@ -92,7 +92,7 @@ public class PaymentRecord {
 
     public void setRejectionStatus(RejectionStatus rejectionStatus) {
         if (rejectionStatus == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("rejectionStatus must not be null");
         }
         this.rejectionStatus = rejectionStatus;
     }
