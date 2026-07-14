@@ -16,7 +16,7 @@ public class PaymentParseResult {
         this.description = Objects.requireNonNull(description, "description must not be null");
         this.records = List.copyOf(Objects.requireNonNull(records, "records must not be null"));    }
 
-    public boolean canProceedToProcessing() {
+    public boolean isSuccess() {
         return parseStatus == ParseStatus.SUCCESS || parseStatus == ParseStatus.PARTIAL_SUCCESS;
     }
 

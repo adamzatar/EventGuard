@@ -38,7 +38,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.SUCCESS, result.getParseStatus());
-        assertTrue(result.canProceedToProcessing());
+        assertTrue(result.isSuccess());
         assertEquals(1, result.getRecords().size());
         assertEquals(expectedRecord, result.getRecords().get(0));
     }
@@ -53,7 +53,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse("   ");
 
         assertEquals(ParseStatus.FAILURE, result.getParseStatus());
-        assertFalse(result.canProceedToProcessing());
+        assertFalse(result.isSuccess());
         assertTrue(result.getRecords().isEmpty());
     }
 
@@ -64,7 +64,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.FAILURE, result.getParseStatus());
-        assertFalse(result.canProceedToProcessing());
+        assertFalse(result.isSuccess());
         assertTrue(result.getRecords().isEmpty());
     }
 
@@ -75,7 +75,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.FAILURE, result.getParseStatus());
-        assertFalse(result.canProceedToProcessing());
+        assertFalse(result.isSuccess());
         assertTrue(result.getRecords().isEmpty());
     }
 
@@ -86,7 +86,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.FAILURE, result.getParseStatus());
-        assertFalse(result.canProceedToProcessing());
+        assertFalse(result.isSuccess());
         assertTrue(result.getRecords().isEmpty());
     }
 
@@ -97,7 +97,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.FAILURE, result.getParseStatus());
-        assertFalse(result.canProceedToProcessing());
+        assertFalse(result.isSuccess());
         assertTrue(result.getRecords().isEmpty());
     }
 
@@ -108,7 +108,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.FAILURE, result.getParseStatus());
-        assertFalse(result.canProceedToProcessing());
+        assertFalse(result.isSuccess());
         assertTrue(result.getRecords().isEmpty());
     }
 
@@ -124,7 +124,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.FAILURE, result.getParseStatus());
-        assertFalse(result.canProceedToProcessing());
+        assertFalse(result.isSuccess());
         assertTrue(result.getRecords().isEmpty());
     }
 
@@ -135,7 +135,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.PARTIAL_SUCCESS, result.getParseStatus());
-        assertTrue(result.canProceedToProcessing());
+        assertTrue(result.isSuccess());
         assertEquals(1, result.getRecords().size());
 
         PaymentRecord record = result.getRecords().get(0);
@@ -151,7 +151,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.PARTIAL_SUCCESS, result.getParseStatus());
-        assertTrue(result.canProceedToProcessing());
+        assertTrue(result.isSuccess());
         assertEquals(1, result.getRecords().size());
 
         PaymentRecord record = result.getRecords().get(0);
@@ -167,7 +167,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.PARTIAL_SUCCESS, result.getParseStatus());
-        assertTrue(result.canProceedToProcessing());
+        assertTrue(result.isSuccess());
         assertEquals(1, result.getRecords().size());
 
         PaymentRecord record = result.getRecords().get(0);
@@ -187,7 +187,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.PARTIAL_SUCCESS, result.getParseStatus());
-        assertTrue(result.canProceedToProcessing());
+        assertTrue(result.isSuccess());
         assertEquals(3, result.getRecords().size());
 
         assertEquals(RejectionStatus.NONE, result.getRecords().get(0).getRejectionStatus());
@@ -205,7 +205,7 @@ class CsvPaymentParserTest {
         PaymentParseResult result = parser.parse(document);
 
         assertEquals(ParseStatus.SUCCESS, result.getParseStatus());
-        assertTrue(result.canProceedToProcessing());
+        assertTrue(result.isSuccess());
         assertEquals(2, result.getRecords().size());
         assertEquals(RejectionStatus.NONE, result.getRecords().get(0).getRejectionStatus());
         assertEquals(RejectionStatus.NONE, result.getRecords().get(1).getRejectionStatus());

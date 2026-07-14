@@ -33,18 +33,15 @@ public class Main {
             // Import / parse
             PaymentParseResult parseResult = importService.importPayments(inputPath);
 
-            if (!parseResult.canProceedToProcessing()) {
+            if (!parseResult.isSuccess()) {
                 System.err.println(parseResult.getDescription());
-                return;
+            } else {
+                // Process
+                List<PaymentRecord> processedRecords = processingService.process(parseResult.getRecords());
+                // Present
+                consolePresenter.present(processedRecords);
+                filePresenter.present(processedRecords);
             }
-
-            // Process
-            List<PaymentRecord> processedRecords = processingService.process(parseResult.getRecords());
-
-            // Present
-            consolePresenter.present(processedRecords);
-            filePresenter.present(processedRecords);
-
         } catch (IOException e) {
             System.err.println("Failed to read or write payment file: " + e.getMessage());
         } catch (IllegalArgumentException e) {
