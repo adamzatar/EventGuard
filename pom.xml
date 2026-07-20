@@ -16,6 +16,7 @@
         <module>eventguard-csv</module>
         <module>eventguard-application</module>
         <module>eventguard-runner</module>
+        <module>eventguard-jdbc</module>
     </modules>
 
     <properties>
