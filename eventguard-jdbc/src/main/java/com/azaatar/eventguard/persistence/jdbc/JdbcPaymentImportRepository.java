@@ -1,20 +1,22 @@
 package com.azaatar.eventguard.persistence.jdbc;
 
+import com.azaatar.eventguard.domain.PaymentRecord;
 import com.azaatar.eventguard.persistence.PaymentImportAttempt;
 import com.azaatar.eventguard.persistence.PaymentImportRepository;
 import com.azaatar.eventguard.persistence.PersistenceException;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-
+import java.sql.Types;
+import java.util.List;
 import java.util.Objects;
 
 public class JdbcPaymentImportRepository implements PaymentImportRepository {
 
-    private final ConnectionProvider connectionProvider;
     private static final String INSERT_IMPORT_ATTEMPT_SQL = """
             INSERT INTO payment_imports (
                 source_name,
@@ -25,6 +27,23 @@ public class JdbcPaymentImportRepository implements PaymentImportRepository {
             VALUES (?, ?, ?, ?)
             RETURNING id
             """;
+
+    private static final String INSERT_PAYMENT_SQL = """
+            INSERT INTO payments (
+                import_id,
+                payment_id,
+                account_id,
+                customer_name,
+                customer_email,
+                amount,
+                currency,
+                payment_status,
+                rejection_status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+
+    private final ConnectionProvider connectionProvider;
 
     public JdbcPaymentImportRepository(ConnectionProvider connectionProvider) {
         this.connectionProvider = Objects.requireNonNull(connectionProvider, "connectionProvider must not be null");
@@ -37,8 +56,12 @@ public class JdbcPaymentImportRepository implements PaymentImportRepository {
         try (Connection connection = connectionProvider.getConnection()) {
             try {
                 connection.setAutoCommit(false);
+
                 long importId = insertImportAttempt(connection, importAttempt);
+                insertPayments(connection, importId, importAttempt.getRecords());
+
                 connection.commit();
+
                 return importId;
             } catch (SQLException exception) {
                 rollback(connection, exception);
@@ -61,7 +84,46 @@ public class JdbcPaymentImportRepository implements PaymentImportRepository {
                     return resultSet.getLong("id");
                 }
             }
+
             throw new PersistenceException("No import ID returned after saving payment import attempt");
+        }
+    }
+
+    private void insertPayments(Connection connection, long importId, List<PaymentRecord> records) throws SQLException {
+        for (PaymentRecord record : records) {
+            insertPayment(connection, importId, record);
+        }
+    }
+
+    private void insertPayment(Connection connection, long importId, PaymentRecord record) throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(INSERT_PAYMENT_SQL)) {
+            preparedStatement.setLong(1, importId);
+            preparedStatement.setString(2, record.getPaymentId());
+            preparedStatement.setString(3, record.getAccountId());
+            preparedStatement.setString(4, record.getName());
+            preparedStatement.setString(5, record.getEmail());
+            setNullableAmount(preparedStatement, 6, record.getAmount());
+            setNullableCurrency(preparedStatement, 7, record.getCurrency());
+            preparedStatement.setString(8, record.getStatus().name());
+            preparedStatement.setString(9, record.getRejectionStatus().name());
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void setNullableAmount(PreparedStatement preparedStatement, int parameterIndex, BigDecimal amount) throws SQLException {
+        if (amount == null) {
+            preparedStatement.setNull(parameterIndex, Types.NUMERIC);
+        } else {
+            preparedStatement.setBigDecimal(parameterIndex, amount);
+        }
+    }
+
+    private void setNullableCurrency(PreparedStatement preparedStatement, int parameterIndex, String currency) throws SQLException {
+        if (currency == null || currency.isBlank()) {
+            preparedStatement.setNull(parameterIndex, Types.VARCHAR);
+        } else {
+            preparedStatement.setString(parameterIndex, currency.trim());
         }
     }
 
